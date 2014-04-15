@@ -60,4 +60,4 @@ qplot(energy_type, prop, data =nrg_summary2)
 qplot(reorder(energy_type, prop), prop, data =nrg_summary2) 
 qplot( prop, reorder(energy_type, prop), data =nrg_summary2) 
 
-
+#test 
