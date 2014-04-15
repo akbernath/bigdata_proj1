@@ -1,0 +1,62 @@
+\documentclass[12pt]{article}
+\usepackage{url,graphicx,tabularx,array,geometry}
+\setlength{\parskip}{1ex} %--skip lines between paragraphs
+\setlength{\parindent}{0pt} %--don't indent paragraphs
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{enumerate}
+
+
+
+%-- Commands for header
+\renewcommand{\title}[1]{\textbf{#1}\\}
+\renewcommand{\line}{\begin{tabularx}{\textwidth}{X>{\raggedleft}X}\hline\\\end{tabularx}\\[-0.5cm]}
+\newcommand{\leftright}[2]{\begin{tabularx}{\textwidth}{X>{\raggedleft}X}#1%
+& #2\\\end{tabularx}\\[-0.5cm]}
+
+%\linespread{2} %-- Uncomment for Double Space
+\begin{document}
+
+\title{Week 2: Meeting \#2 }
+\line
+\leftright{April 9, 2014}{Group \#4} %-- left and right positions in the header
+\vspace{5mm}
+
+\begin{itemize}
+\item After collecting results from the \emph{Survey Monkey} poll to chose questions of interest it was found that since there were 18 items and each group member was asked to indicate 4 preferences that the votes were slip. 
+\item There were several items that focused on commuting length and patterns with various applications.  Therefore, similar items were combined. 
+\item The following are the top \emph{three} questions of interest:
+\begin{itemize}
+\item (1+5+7): The documentation says that there is information on the ?place of work and journey to work?. I think an interesting question could be using this as a metric for urban sprawl and comparing this between states. 
+
+Given that the nature of a person's transportation to work is recorded (public transit, car, truck, or van), I'd be interested in seeing just how drastically the time taken to get to work scales with a) choice of vehicle and b) population density of a given state.
+
+Are reported commute times for public transportation significantly longer than personal vehicle commutes?
+\item (3) Many new instruction strategies involve the integration of technology in the classroom; however, implicitly there is a strong assumption that the students own a computer and know how to use it. The survey contains information on ?computers and internet use? in households. I think it would be interesting to do a time series like approach and compare how the access to technology is changing over time and possibly comparing this in different geographic locations. 
+\item (4) Veteran Sufficiency: We can analyze the income and self-sufficiency (primarily evaluated under questions 18 and 19 of the ACS) of veterans in various states against their veteran status (possibly quantifiable through their VA service-connected disability rating, question 28) in different states.
+\end{itemize}
+\item In class Alix suggested not focusing too heavily on modeling but rather on problems at the core of big data such as subletting and summarizing. 
+\end{itemize}
+
+%%%%GENERAL SUBSECTIONS
+%\vspace{5mm}
+%\textbf{1.}
+%\emph{}
+
+%%%%INSERTING GRAPHICS (PDFS)
+%   \begin{center} 
+%\includegraphics[width=.8 \textwidth]{poisshw2}
+
+% \end{center}
+
+%%%%TABLES
+% \begin{center}
+  %\begin{tabular}{| l | c | }
+   % \hline
+%Source & DF \\ \hline
+
+ % \end{tabular}
+%\end{center}
+
+\end{document}
