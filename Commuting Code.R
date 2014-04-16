@@ -105,3 +105,14 @@ la.counts <- count(home_LA$JWTR)
 la.counts[,2] <- la.counts[,2]/la.type.na[1,2]
 pd.counts <- count(home_PD$JWTR)
 pd.counts[,2] <- pd.counts[,2]/pd.type.na[1,2]
+
+
+
+#### Following section added in 2nd commit ####
+##  Mean Travel Times by Vehicle Type  ##
+
+## Los Angeles
+ddply(home_LA, .(JWTR), summarise, mean=mean(JWMNP,na.rm=TRUE))
+
+##  Portland
+ddply(home_PD, .(JWTR), summarise, mean=mean(JWMNP,na.rm=TRUE))
