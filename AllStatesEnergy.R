@@ -152,3 +152,17 @@ with (
   , expr = errbar(x, y, y+sd, y-sd, add=T, pch=1, cap=.1)
 )
 
+
+df <- data.frame(
+  state = factor(reorder(ord_state_e,ord_mean_bill)),
+  mean = ord_mean_bill,
+  se = ord_sd_bill
+)
+
+limits <- aes(ymax = mean + se, ymin=mean - se)
+
+p <- ggplot(df, aes(fill=state_names,y=mean, x=state,main="Average Electricity Bill by State"))
+p
+p + geom_bar(position="dodge", stat="identity")
+dodge <- position_dodge(width=0.9)
+p + geom_bar(position=dodge) + geom_errorbar(limits, position=dodge, width=0.25)
