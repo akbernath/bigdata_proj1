@@ -75,7 +75,7 @@ for(i in 1:50){
                            n = n(),
                            n_missing = sum(is.na(HFL)))
   
-  nrg_summary2 <- mutate(nrg_summary, prop = n/sum(n))
+  nrg_summary2 <- mutate(nrg_summary, prop = round(n/sum(n),6))
   for(j in 1:(length(nrg_summary2$energy_type)-1)){
     for(k in 2:10){
       if(nrg_summary2$energy_type[j]==nrg_types[k,1]){
@@ -87,3 +87,11 @@ for(i in 1:50){
 }
 
 write.csv(nrg_types, file = "/Users/heatherhisako1/Documents/bigdata_proj1/nrg_types.csv")
+
+library(ggplot2)
+
+solar.prop<-c(as.numeric(nrg_types[8,2:51]))
+solar.mat<-cbind(solar.prop,state_names[1:50])
+new.solar<-solar.mat[order(solar.prop),]
+qplot(as.numeric(new.solar[,1]),reorder(new.solar[,2],order(as.numeric(new.solar[,1]))),main="Proportion of Households Predominantly Using Solar Energy by State",xlab="Proportion of Households Predominantly Using Solar Energy",ylab="State")
+warnings()
