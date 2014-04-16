@@ -30,35 +30,60 @@ acs.or.data <- as.data.frame(acs_por)
 
 ##  Reduce Data  ##
 
-##  Collect rows for persons reporting greater LA area as home
+#### Following county region expanded in third commit ####
+##  Collect rows for persons reporting LA County as home
 home_LA <- as.data.frame(filter(acs.ca.data, 
-    (PUMA00 == "5401")|(PUMA00 == "5402")|
-    (PUMA00 == "5403")|(PUMA00 == "5404")|
-    (PUMA00 == "5405")|(PUMA00 == "5406")|
-    (PUMA00 == "5407")|(PUMA00 == "5408")|
-    (PUMA00 == "5409")|(PUMA00 == "5410")|
-    (PUMA00 == "5411")|(PUMA00 == "5412")|
-    (PUMA00 == "5413")|(PUMA00 == "5414")|
-    (PUMA00 == "5415")|(PUMA00 == "5416")|
-    (PUMA00 == "5417")|(PUMA00 == "5418")|
-    (PUMA00 == "5419")|(PUMA00 == "5420")|
-    (PUMA00 == "5421")|(PUMA00 == "5422")|
-    (PUMA00 == "5423")|(PUMA00 == "5424")
-    ))
-##  LA City PUMA codes found at:
+                        (PUMA00 == "5401")|(PUMA00 == "5402")|
+                        (PUMA00 == "5403")|(PUMA00 == "5404")|
+                        (PUMA00 == "5405")|(PUMA00 == "5406")|
+                        (PUMA00 == "5407")|(PUMA00 == "5408")|
+                        (PUMA00 == "5409")|(PUMA00 == "5410")|
+                        (PUMA00 == "5411")|(PUMA00 == "5412")|
+                        (PUMA00 == "5413")|(PUMA00 == "5414")|
+                        (PUMA00 == "5415")|(PUMA00 == "5416")|
+                        (PUMA00 == "5417")|(PUMA00 == "5418")|
+                        (PUMA00 == "5419")|(PUMA00 == "5420")|
+                        (PUMA00 == "5421")|(PUMA00 == "5422")|
+                        (PUMA00 == "5423")|(PUMA00 == "5424")|
+                        (PUMA00 == "6101")|(PUMA00 == "6102")|
+                        (PUMA00 == "6103")|(PUMA00 == "6104")|
+                        (PUMA00 == "6105")|(PUMA00 == "6106")|
+                        (PUMA00 == "6107")|(PUMA00 == "6108")|
+                        (PUMA00 == "6109")|(PUMA00 == "6110")|
+                        (PUMA00 == "6111")|(PUMA00 == "6112")|
+                        (PUMA00 == "6113")|(PUMA00 == "6114")|
+                        (PUMA00 == "6115")|(PUMA00 == "6116")|
+                        (PUMA00 == "6117")|(PUMA00 == "6118")|
+                        (PUMA00 == "6119")|(PUMA00 == "6410")|
+                        (PUMA00 == "5701")|(PUMA00 == "5702")|
+                        (PUMA00 == "5703")|(PUMA00 == "6120")|
+                        (PUMA00 == "6121")|(PUMA00 == "6122")|
+                        (PUMA00 == "6123")|(PUMA00 == "6124")|
+                        (PUMA00 == "6125")|(PUMA00 == "6126")|
+                        (PUMA00 == "4500")|(PUMA00 == "4600")|
+                        (PUMA00 == "4700")|(PUMA00 == "4800")|
+                        (PUMA00 == "4900")|(PUMA00 == "5000")|
+                        (PUMA00 == "5100")|(PUMA00 == "5200")|
+                        (PUMA00 == "5300")|(PUMA00 == "5500")|
+                        (PUMA00 == "5600")|(PUMA00 == "5800")|
+                        (PUMA00 == "5900")|(PUMA00 == "6000")
+            ))
+##  LA County PUMA codes found at:
 ##  http://www2.census.gov/census_2000/datasets/PUMS/FivePercent/California/PUMEQ5-CA.TXT
 
 
-##  Collect rows for persons reporting greater Portland area as home
-home_PD <- filter(acs.or.data,
-    (PUMA00 == "1301")|(PUMA00 == "1302")|
-    (PUMA00 == "1303")|(PUMA00 == "1304")|
-    (PUMA00 == "1305")|(PUMA00 == "1306")|
-    (PUMA00 == "1307")|(PUMA00 == "1308")|
-    (PUMA00 == "1309")|(PUMA00 == "1310")|
-    (PUMA00 == "1311")|(PUMA00 == "1312")|
-    (PUMA00 == "1313")
-    )
+#### Following county region expanded in third commit ####
+##  Collect rows for persons reporting Portland city or 
+##  Mulnomah County (and some adjacent cities) as home
+home_PD <- as.data.frame(filter(acs.or.data,
+                        (PUMA00 == "1301")|(PUMA00 == "1302")|
+                        (PUMA00 == "1303")|(PUMA00 == "1304")|
+                        (PUMA00 == "1305")|(PUMA00 == "1306")|
+                        (PUMA00 == "1307")|(PUMA00 == "1308")|
+                        (PUMA00 == "1309")|(PUMA00 == "1310")|
+                        (PUMA00 == "1311")|(PUMA00 == "1312")|
+                        (PUMA00 == "1313")
+            ))
 ##  Portland City PUMA codes found at:
 ##  http://www2.census.gov/census_2000/datasets/PUMS/FivePercent/Oregon/PUMEQ5-OR.TXT
     
