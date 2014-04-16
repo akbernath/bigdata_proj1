@@ -94,4 +94,61 @@ solar.prop<-c(as.numeric(nrg_types[8,2:51]))
 solar.mat<-cbind(solar.prop,state_names[1:50])
 new.solar<-solar.mat[order(solar.prop),]
 qplot(as.numeric(new.solar[,1]),reorder(new.solar[,2],order(as.numeric(new.solar[,1]))),main="Proportion of Households Predominantly Using Solar Energy by State",xlab="Proportion of Households Predominantly Using Solar Energy",ylab="State")
-warnings()
+#awesome plot!!! Hawaii wins solar energy
+
+elec.prop<-c(as.numeric(nrg_types[4,2:51]))
+elec.mat<-cbind(elec.prop,state_names[1:50])
+new.elec<-elec.mat[order(elec.prop),]
+qplot(as.numeric(new.elec[,1]),reorder(new.elec[,2],order(as.numeric(new.elec[,1]))),main="Proportion of Households Predominantly Using Electricity by State",xlab="Proportion of Households Predominantly Using Solar Energy",ylab="State")
+# Florida wins electricity
+
+##### electricity bill 
+
+e.bill<-matrix(rep(0,153),nrow=3)
+e.bill[1,]<-c("State",state_names)
+e.bill[,1]<-c("State","Mean Elec Bill","SD Elec Bill")
+e.bill[,1]
+for(i in 1:50){
+  h=i+1
+  state<-read.csv(paste("/Users/heatherhisako1/ss12h",tolower(state.abb)[i],"-cut.csv",sep=""),header=TRUE)
+  state_df <- tbl_df(state)
+ 
+  e.bill[2,h]=mean(state_df$ELEP,na.rm=TRUE)
+  e.bill[3,h]=sd(state_df$ELEP,na.rm=TRUE)
+ 
+}
+
+head(e.bill)
+
+mean<-e.bill[2,2:51]
+se<-e.bill[3,2:51]
+
+e.mat<-cbind(mean,se,state_names)
+new.emat<-e.mat[order(as.numeric(mean)),]
+head(new.emat)
+
+ord_mean_bill<-as.numeric(new.emat[,1])
+ord_sd_bill<-as.numeric(new.emat[,2])
+ord_state_e<-new.emat[,3]
+
+new.emat<-cbind(ord_mean_bill,ord_sd_bill,ord_state_e)
+
+
+qplot(ord_mean_bill, reorder(ord_state_e,ord_mean_bill))
+
+install.packages("Hmisc", dependencies=T)
+library("Hmisc")
+
+d = data.frame(
+  x  = reorder(ord_state_e,ord_mean_bill)
+  , y  = ord_mean_bill
+  , sd = ord_sd_bill
+)
+
+#plot of mean electricty bill and standard error bars
+plot(d$x, d$y, ylim=c(min(d$y-d$sd),max(d$y+d$sd)),type="n",main="Average Electricity Bill by State with Standard Error Bars",xlab="Average Electricity Bill",ylab="State")
+with (
+  data = d
+  , expr = errbar(x, y, y+sd, y-sd, add=T, pch=1, cap=.1)
+)
+
