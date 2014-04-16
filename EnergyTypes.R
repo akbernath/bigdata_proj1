@@ -60,4 +60,49 @@ qplot(energy_type, prop, data =nrg_summary2)
 qplot(reorder(energy_type, prop), prop, data =nrg_summary2) 
 qplot( prop, reorder(energy_type, prop), data =nrg_summary2) 
 
-#test2
+####generalize for all states
+
+state.abb[1:5]
+#gives abriviations for states 
+#but we want lower case
+#use tolower()
+
+tolower(state.abb[1:5])
+
+#in class Charlotte said that she used the paste() function
+paste("dog","cat","mouse")
+paste("dog","cat","mouse",sep="")
+#take out spaces
+
+base.url<-"http://www2.census.gov/acs2012_5yr/pums/csv_h"
+state.url<-paste(base.url,tolower(state.abb[1]),".zip",sep="")
+state.zip<-paste("/Users/heatherhisako1/csv_h",tolower(state.abb[1]),".zip",sep="")
+state.zip
+state.csv<-paste("ss12h",tolower(state.abb[1]),".csv",sep="")
+state.csv
+
+prop<-c()
+#I'm doing this in a loop, but perhaps this isnt the most efficient way
+for (i in 1:50){
+  base.url<-"http://www2.census.gov/acs2012_5yr/pums/csv_h"
+  state.url<-paste(base.url,tolower(state.abb[i]),".zip",sep="")
+  state.zip<-paste("/Users/heatherhisako1/csv_h",tolower(state.abb[i]),".zip",sep="")
+  state.csv<-paste("ss12h",tolower(state.abb[i]),".csv",sep="")
+  
+  download.file(state.url, destfile = state.zip)
+  or_h <- read.csv(unz(state.zip, state.csv), nrows = 10, stringsAsFactors = FALSE)
+  types2 <- ifelse(names(or_h) %in% c("ELEP", "FULP", "GASP","HFL"), "integer", "NULL")
+or3 <- read.csv(unz(state.zip, state.csv),stringsAsFactors = FALSE, colClasses = types2)
+  or_df <- tbl_df(or3)
+or_df <- mutate(or_df, energy_type = HFL_codes[as.character(HFL)])
+
+nrg_type <- group_by(or_df, HFL)
+
+nrg_summary <- summarise(nrg_type, 
+                         energy_type = first(energy_type),
+                         n = n(),
+                         n_missing = sum(is.na(HFL)))
+
+nrg_summary2 <- mutate(nrg_summary, prop = round(n/sum(n),4))
+prop<-c(prop,nrg_summary2$prop)
+}
