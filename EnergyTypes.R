@@ -18,6 +18,11 @@ str(or_h)
 #tells which column numbers
 which(names(or_h)%in% c("ELEP", "FULP", "GASP", "HFL"))
 
+#ELEP = Electricity (monthly cost)
+#FULP = Fuel cost (yearly cost for fuels other than gas and electricity)
+#GASP = Gass (monthly cost)
+#HFL = House heating fuel
+
 types2 <- ifelse(names(or_h) %in% c( "ELEP", "FULP", "GASP", "HFL"), "integer", "NULL")
 
 system.time(or3 <- read.csv(unz("/Users/heatherhisako1/csv_hor.zip", "ss12hor.csv"),stringsAsFactors = FALSE, colClasses = types2))
@@ -47,6 +52,9 @@ nrg_type <- group_by(or_df, HFL)
 nrg_summary <- summarise(nrg_type, 
                           energy_type = first(energy_type),
                           n = n(),
+                         avg_elec_cost=mean(ELEP,na.rm=TRUE),
+                         avg_fuel_cost=mean(FULP,na.rm=TRUE),
+                         avg_gas_cost=mean(GASP,na.rm=TRUE),
                          n_missing = sum(is.na(HFL)))
 
 nrg_summary
