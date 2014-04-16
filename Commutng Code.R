@@ -31,7 +31,7 @@ acs.or.data <- as.data.frame(acs_por)
 ##  Reduce Data  ##
 
 ##  Collect rows for persons reporting greater LA area as home
-home_LA <- filter(acs.ca.data, 
+home_LA <- as.data.frame(filter(acs.ca.data, 
     (PUMA00 == "5401")|(PUMA00 == "5402")|
     (PUMA00 == "5403")|(PUMA00 == "5404")|
     (PUMA00 == "5405")|(PUMA00 == "5406")|
@@ -44,7 +44,7 @@ home_LA <- filter(acs.ca.data,
     (PUMA00 == "5419")|(PUMA00 == "5420")|
     (PUMA00 == "5421")|(PUMA00 == "5422")|
     (PUMA00 == "5423")|(PUMA00 == "5424")
-    )
+    ))
 ##  LA City PUMA codes found at:
 ##  http://www2.census.gov/census_2000/datasets/PUMS/FivePercent/California/PUMEQ5-CA.TXT
 
@@ -106,3 +106,6 @@ la.counts[,2] <- la.counts[,2]/la.type.na[1,2]
 pd.counts <- count(home_PD$JWTR)
 pd.counts[,2] <- pd.counts[,2]/pd.type.na[1,2]
 
+
+
+## Wheee, here is new code
