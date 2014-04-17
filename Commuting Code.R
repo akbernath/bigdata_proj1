@@ -9,6 +9,7 @@
 setwd("D:/School/Spring 14/ST - Big Data/Proj1")
 library(dplyr)
 library(plyr)
+library(ggplot2)
 options(stringsAsFactors = FALSE)
 
 #########################
@@ -98,7 +99,6 @@ n.la <- length(home_LA$PUMA00)
 n.pd <- length(home_PD$PUMA00)
 
 
-
 ##  Travel Time Summaries  ##
 
 ##  Number of missing entries for travel time
@@ -108,15 +108,13 @@ pd.time.na <- count(is.na(home_PD$JWMNP))
 ##  Mean reported travel times
 la.avgtime <- mean(home_LA$JWMNP, na.rm=TRUE)
 pd.avgtime <- mean(home_PD$JWMNP, na.rm=TRUE)
+tot.avgtime <- mean(c(home_LA$JWMNP,home_PD$JWMNP),na.rm=TRUE)
 
-
-
-##  Occupancy Summaries  ##
-
-##  Mean number of vehicle occupants
-la.avgocc <- mean(home_LA$JWRIP, na.rm=TRUE)
-pd.avgocc <- mean(home_PD$JWRIP, na.rm=TRUE)
-
+#### Unused code commented out in 4th commit ####
+####  Occupancy Summaries  ##
+####  Mean number of vehicle occupants
+##la.avgocc <- mean(home_LA$JWRIP, na.rm=TRUE)
+##pd.avgocc <- mean(home_PD$JWRIP, na.rm=TRUE)
 
 
 ##  Vehicle Type Summaries  ##
@@ -130,14 +128,74 @@ la.counts <- count(home_LA$JWTR)
 la.counts[,2] <- la.counts[,2]/la.type.na[1,2]
 pd.counts <- count(home_PD$JWTR)
 pd.counts[,2] <- pd.counts[,2]/pd.type.na[1,2]
-
+##  So to rebut the band Missing Persons, 2.8% of
+##  commuters walk in LA.
 
 
 #### Following section added in 2nd commit ####
+#### Following section expanded in 4th commit ####
 ##  Mean Travel Times by Vehicle Type  ##
 
+##  Counts of travel type
+LA.cnt <- count(home_LA, .(JWTR))
+PD.cnt <- count(home_PD, .(JWTR))
+# note only 1 person traveled by ferry in Portland, so no SD
+
 ## Los Angeles
-ddply(home_LA, .(JWTR), summarise, mean=mean(JWMNP,na.rm=TRUE))
+LA.data <- ddply(home_LA, .(JWTR), summarise,
+                 mean=mean(JWMNP,na.rm=TRUE),
+                 sd=sd(JWMNP,na.rm=TRUE))
+LA.data[,4] <- rep(0,13)
+LA.data[,5] <- rep("Los Angeles",11)
+colnames(LA.data) <- c("type","mean","sd","se","city")
+
+##  Loop to create standard errors
+for(i in 1:13)(
+  LA.data[i,4] <- LA.data$sd[i]/LA.cnt$freq[i]-
+  )
 
 ##  Portland
-ddply(home_PD, .(JWTR), summarise, mean=mean(JWMNP,na.rm=TRUE))
+PD.data <- ddply(home_PD, .(JWTR), summarise,
+                 mean=mean(JWMNP,na.rm=TRUE),
+                 sd=sd(JWMNP,na.rm=TRUE))
+PD.data[,4] <- rep(0,13)
+PD.data[,5] <- rep("Portland",11)
+colnames(PD.data) <- c("type","mean","sd","se","city")
+
+##  Loop to create standard errors
+for(i in 1:13)(
+  PD.data[i,4] <- PD.data$sd[i]/PD.cnt$freq[i]
+)
+
+##  Clean up entries
+LA.data <- LA.data[c(-11,-13),]
+PD.data <- PD.data[c(-11,-13),]
+
+##  Re-label types
+LA.data$type <- PD.data$type <- c("Car/Truck/Van","Bus",
+                "Streetcar","Subway","Railroad","Ferryboat",
+                "Taxi","Motorcycle","Bicycle","Walked","Other")
+
+
+city.data <- rbind(LA.data, PD.data)
+limits <- aes(ymax=mean+se, ymin=mean-se)
+dodge <- position_dodge(width=0.8)
+
+#### Following section added in 4th commit ####
+## Visualization  ##
+
+ggplot(data=city.data, aes(x=factor(type),y=mean,fill=city))+
+  geom_bar(stat="identity",position=dodge,color="black",width=0.8)+
+  ggtitle("Mean Travel Time by Type")+
+  theme(plot.title=element_text(size=24,face="bold"))+
+  xlab("Transportation Type")+
+  ylab("Average Travel Time (minutes)")+
+  scale_fill_manual(values=c("#996633","#33CC33"))+
+  geom_abline(intercept=la.avgtime,slope=0,color="#996633",size=1)+
+  geom_abline(intercept=pd.avgtime,slope=0,color="#33CC33",size=1)+
+  geom_text(aes(10.5,31,label="LA Average"))+
+  geom_text(aes(10.5,23.5,label="Portland Average"))+
+  geom_errorbar(limits,position=dodge,width=0.25)
+
+
+
