@@ -346,7 +346,7 @@ plots[[9]]=ggplot(foo, aes(x,y, fill = No_Fuel_Used,group = group)) +
   scale_fill_gradient(low = "white", high = "blue")+
   coord_fixed()
 
-
+#yay! plots
 install.packages("gridExtra")
 library(gridExtra)
 
