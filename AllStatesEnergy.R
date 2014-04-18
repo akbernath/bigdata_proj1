@@ -6,7 +6,7 @@ library(dplyr)
 # 3. cut out columns of interest
 # 4. read in a file, produce summary, and concatenate
 
-state_names <- tolower(state.abb)
+state_names <- c(tolower(state.abb),"dc")
 
 which(state_names=="nv")
 # 1. download zip files
@@ -57,14 +57,15 @@ any(status == "failed to cut")
 
 51*11 #elements of mat
 
-nrg_types<-matrix(rep(0,561),nrow=11)
-nrg_types[1,]<-c("State",state_names)
-nrg_types[,1]<-c("State","Utility Gas","Bottled, tank, or LP gas","Electricity","Fuel oil, kerosene, etc","Coal or coke","Wood","Solar engery","Other fuel","No fuel used",NA)
-nrg_types[,1]
+nrg_types<-matrix(rep(0,624),nrow=52)
+nrg_types[,1]<-c("State",tolower(state.name[1:50]),tolower("District of Columbia"))
+nrg_types[,2]<-c("Abb",state_names)
+nrg_types[1,]<-c("State","Abb","Utility Gas","Bottled, tank, or LP gas","Electricity","Fuel oil, kerosene, etc","Coal or coke","Wood","Solar engery","Other fuel","No fuel used",NA)
+nrg_types[1,]
 
-for(i in 1:50){
+for(i in 1:51){
   h=i+1
-  state<-read.csv(paste("/Users/heatherhisako1/ss12h",tolower(state.abb)[i],"-cut.csv",sep=""),header=TRUE)
+  state<-read.csv(paste("/Users/heatherhisako1/ss12h",state_names[i],"-cut.csv",sep=""),header=TRUE)
   state_df <- tbl_df(state)
   state_df <- mutate(state_df, energy_type = HFL_codes[as.character(HFL)])
   
@@ -77,40 +78,42 @@ for(i in 1:50){
   
   nrg_summary2 <- mutate(nrg_summary, prop = round(n/sum(n),6))
   for(j in 1:(length(nrg_summary2$energy_type)-1)){
-    for(k in 2:10){
-      if(nrg_summary2$energy_type[j]==nrg_types[k,1]){
-        nrg_types[k,h]=nrg_summary2$prop[j]
+    for(k in 3:11){
+      if(nrg_summary2$energy_type[j]==nrg_types[1,k]){
+        nrg_types[h,k]=nrg_summary2$prop[j]
       }
     } 
   }
-  nrg_types[11,h]=nrg_summary2$prop[length(nrg_summary2$energy_type)]
+  nrg_types[h,12]=nrg_summary2$prop[length(nrg_summary2$energy_type)]
 }
 
 write.csv(nrg_types, file = "/Users/heatherhisako1/Documents/bigdata_proj1/nrg_types.csv")
 
+sum_nrg<-read.csv("/Users/heatherhisako1/Documents/bigdata_proj1/nrg_types.csv",header=TRUE)
+names(sum_nrg)
 library(ggplot2)
 
-solar.prop<-c(as.numeric(nrg_types[8,2:51]))
-solar.mat<-cbind(solar.prop,state_names[1:50])
+solar.prop<-c(as.numeric(nrg_types[2:52,9]))
+solar.mat<-cbind(solar.prop,state_names[1:51])
 new.solar<-solar.mat[order(solar.prop),]
 qplot(as.numeric(new.solar[,1]),reorder(new.solar[,2],order(as.numeric(new.solar[,1]))),main="Proportion of Households Predominantly Using Solar Energy by State",xlab="Proportion of Households Predominantly Using Solar Energy",ylab="State")
 #awesome plot!!! Hawaii wins solar energy
 
-elec.prop<-c(as.numeric(nrg_types[4,2:51]))
-elec.mat<-cbind(elec.prop,state_names[1:50])
+elec.prop<-c(as.numeric(nrg_types[2:52,5]))
+elec.mat<-cbind(elec.prop,state_names[1:51])
 new.elec<-elec.mat[order(elec.prop),]
 qplot(as.numeric(new.elec[,1]),reorder(new.elec[,2],order(as.numeric(new.elec[,1]))),main="Proportion of Households Predominantly Using Electricity by State",xlab="Proportion of Households Predominantly Using Solar Energy",ylab="State")
 # Florida wins electricity
 
 ##### electricity bill 
 
-e.bill<-matrix(rep(0,153),nrow=3)
+e.bill<-matrix(rep(0,156),nrow=3)
 e.bill[1,]<-c("State",state_names)
 e.bill[,1]<-c("State","Mean Elec Bill","SD Elec Bill")
 e.bill[,1]
-for(i in 1:50){
+for(i in 1:51){
   h=i+1
-  state<-read.csv(paste("/Users/heatherhisako1/ss12h",tolower(state.abb)[i],"-cut.csv",sep=""),header=TRUE)
+  state<-read.csv(paste("/Users/heatherhisako1/ss12h",state_names[i],"-cut.csv",sep=""),header=TRUE)
   state_df <- tbl_df(state)
  
   e.bill[2,h]=mean(state_df$ELEP,na.rm=TRUE)
@@ -120,8 +123,8 @@ for(i in 1:50){
 
 head(e.bill)
 
-mean<-e.bill[2,2:51]
-se<-e.bill[3,2:51]
+mean<-e.bill[2,2:52]
+se<-e.bill[3,2:52]
 
 e.mat<-cbind(mean,se,state_names)
 new.emat<-e.mat[order(as.numeric(mean)),]
@@ -161,8 +164,192 @@ df <- data.frame(
 
 limits <- aes(ymax = mean + se, ymin=mean - se)
 
-p <- ggplot(df, aes(fill=state_names,y=mean, x=state,main="Average Electricity Bill by State"))
+p <- ggplot(df, aes(fill=mean,y=mean, x=state,main="Average Electricity Bill by State"))
 p
+
 p + geom_bar(position="dodge", stat="identity")
 dodge <- position_dodge(width=0.9)
-p + geom_bar(position=dodge) + geom_errorbar(limits, position=dodge, width=0.25)
+p + geom_bar(position=dodge) + geom_errorbar(limits, position=dodge, width=0.25)+ggtitle("Average Electricity Bill by State")
+
+####map plots
+sum_nrg<-read.csv("/Users/heatherhisako1/Documents/bigdata_proj1/nrg_types.csv",header=TRUE)
+names(sum_nrg)
+
+head(sum_nrg)
+install.packages("maps")
+require(maps)
+require(ggplot2)
+state=map_data("state")
+
+# Not faceted
+states_map = map_data("state")
+ggplot(sum_nrg, aes(map_id = State, fill = Solar.engery)) +
+  geom_map(map = states_map, color = "black") +
+  expand_limits(x = states_map$long, y = states_map$lat) +
+  scale_fill_gradient(low = "white", high = "blue")
+
+# Faceted
+
+sum_nrg2=sum_nrg
+sum_nrg2
+
+install.packages("reshape2")
+library(reshape2) # for melt
+sum_nrgm = melt(sum_nrg[,-2], id = 1)
+states_map = map_data("state")
+ggplot(sum_nrgm, aes(map_id = State, fill = value)) +
+  geom_map(map = states_map, color = "black") +
+  expand_limits(x = states_map$long, y = states_map$lat) +
+  facet_wrap( ~ variable,scales="free") +
+  scale_fill_gradient(low = "white", high = "blue")
+
+###what about alaska and hawaii?
+library(mapproj)
+require(maps)
+library(maptools)
+library(dplyr)
+library(ggplot2)
+
+
+usa <- readShapeSpatial("/Users/heatherhisako1/Downloads/gz_2010_us_040_00_20m/gz_2010_us_040_00_20m.shp")
+usa_df <- fortify(usa)
+usa_df$state <-  as.character(usa$NAME[as.numeric(usa_df$id) + 1])
+
+usa_df <- subset(usa_df, state != "Puerto Rico")
+# remove Puerto Rico 
+
+# wrap alutiean?
+usa_df$long[usa_df$long  > 0] <- usa_df$long[usa_df$long  > 0] - 360
+
+# put alaska and hawaii in different facets
+usa_df$ak_hi <- as.character(usa_df$state)
+usa_df$ak_hi[!(usa_df$ak_hi %in% c("Alaska", "Hawaii"))] <- "lower48"
+
+# add abbreviations
+abbs <- tolower(c(state.abb, "dc"))
+names(abbs) <- c(state.name, "District of Columbia")
+
+usa_df$state.abb <- abbs[usa_df$state]
+usa_df <- plyr::rename(usa_df, 
+                       c("state" = "state_name", "state.abb" = "state"))
+
+# long, lat version with alaska and hawaii in correct locations
+saveRDS(usa_df, "usa-state-map.rds")
+
+# == project and move ak and hi == #
+# all 
+lower48 <- subset(usa_df, 
+                  !(state_name %in% c("Alaska", "Hawaii")))
+
+ak <- subset(usa_df, state_name == "Alaska")
+hi <- subset(usa_df, state_name == "Hawaii")
+# scale and move closer
+
+
+ak_proj <- as.data.frame(mapproject(ak$long,  ak$lat,
+                                    projection = "albers", 
+                                    parameters = list(lat0 = 55, lat1 = 65))[c("x","y")])
+ak_proj <- cbind(ak, ak_proj)
+
+hi_proj <- as.data.frame(mapproject(hi$long,  hi$lat,
+                                    projection = "albers", 
+                                    parameters = list(lat0 = 8, lat1 = 18))[c("x","y")])
+hi_proj <- cbind(hi, hi_proj)
+
+lower48_proj <- as.data.frame(
+  mapproject(lower48$long, lower48$lat,
+             projection = "albers", 
+             parameters = list(lat0 = 29.5, lat1 = 45.5))[c("x","y")])
+lower48_proj <- cbind(lower48, lower48_proj)
+
+ak_proj_trans <- mutate(ak_proj,
+                        x = 0.35*x - 0.4, y = 0.35*y - 1.25)
+hi_proj_trans <- mutate(hi_proj,
+                        x = x - 0.2, y = y + 2.7)
+
+usa_all <- rbind(lower48_proj, hi_proj_trans, ak_proj_trans)
+# x, y version with alaska and hawaii near lower 48
+saveRDS(usa_all, "usa-state-map_all.rds")
+
+head(usa_all)
+
+#plot
+
+
+colnames(sum_nrg)[1]="state_name"
+colnames(sum_nrg)[2]="state"
+colnames(sum_nrg)[9]="Solar_Energy"
+colnames(sum_nrg)[3]="Utility_Gas"
+colnames(sum_nrg)[4]="Bottled_tank_or_LPGas"
+colnames(sum_nrg)[6]="Fuel_oil_kerosene_etc"
+colnames(sum_nrg)[7]="Coal_or_Coke"
+colnames(sum_nrg)[10]="Other_Fuel"
+colnames(sum_nrg)[11]="No_Fuel_Used"
+sum_nrg$state=as.character(sum_nrg$state)
+foo=inner_join(sum_nrg,usa_all,by="state")
+class(sum_nrg$state)
+class(usa_all$state)
+head(foo)
+head(sum_nrg)
+head(usa_df)
+
+ggplot(foo, aes(x,y, fill = Solar_energy,group = group)) +
+  geom_polygon(color = "black") +
+  scale_fill_gradient(low = "white", high = "blue")+
+  coord_fixed()
+
+qplot(x, y, data = foo, 
+      geom = "polygon", group =group, fill = Solar_energy) +
+  coord_fixed()
+
+dim(foo)
+dim(sum_nrg)
+dim(usa_all)
+
+names(sum_nrg)
+
+plots=list()
+plots[[1]]=ggplot(foo, aes(x,y, fill = Utility_Gas,group = group)) +
+  geom_polygon(color = "black") +
+  scale_fill_gradient(low = "white", high = "blue")+
+  coord_fixed()
+plots[[2]]=ggplot(foo, aes(x,y, fill = Bottled_tank_or_LPGas,group = group)) +
+  geom_polygon(color = "black") +
+  scale_fill_gradient(low = "white", high = "blue")+
+  coord_fixed()
+plots[[3]]=ggplot(foo, aes(x,y, fill = Electricity,group = group)) +
+  geom_polygon(color = "black") +
+  scale_fill_gradient(low = "white", high = "blue")+
+  coord_fixed()
+plots[[4]]=ggplot(foo, aes(x,y, fill = Fuel_oil_kerosene_etc,group = group)) +
+  geom_polygon(color = "black") +
+  scale_fill_gradient(low = "white", high = "blue")+
+  coord_fixed()
+plots[[5]]=ggplot(foo, aes(x,y, fill = Coal_or_Coke,group = group)) +
+  geom_polygon(color = "black") +
+  scale_fill_gradient(low = "white", high = "blue")+
+  coord_fixed()
+plots[[6]]=ggplot(foo, aes(x,y, fill = Wood,group = group)) +
+  geom_polygon(color = "black") +
+  scale_fill_gradient(low = "white", high = "blue")+
+  coord_fixed()
+plots[[7]]=ggplot(foo, aes(x,y, fill = Solar_Energy,group = group)) +
+  geom_polygon(color = "black") +
+  scale_fill_gradient(low = "white", high = "blue")+
+  coord_fixed()
+plots[[8]]=ggplot(foo, aes(x,y, fill = Other_Fuel,group = group)) +
+  geom_polygon(color = "black") +
+  scale_fill_gradient(low = "white", high = "blue")+
+  coord_fixed()
+plots[[9]]=ggplot(foo, aes(x,y, fill = No_Fuel_Used,group = group)) +
+  geom_polygon(color = "black") +
+  scale_fill_gradient(low = "white", high = "blue")+
+  coord_fixed()
+
+#yay! plots with map
+install.packages("gridExtra")
+library(gridExtra)
+
+do.call(grid.arrange, plots)
+
+
