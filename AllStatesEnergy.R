@@ -1,3 +1,9 @@
+#Heather Kitada 
+#Looking at energy type used in home 
+#housing level data 
+
+#generalize for all 50 states (plus dc)
+
 # Code to repeat for all states
 library(dplyr)
 ##USED Charlottes template to automate file downloads for all states
