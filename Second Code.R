@@ -1,8 +1,17 @@
 # minor modification; testing a commit
 # hi
 
+# install.packages("dplyr")
 library(dplyr)
+# install.packages("ggplot2")
 library(ggplot2)
+# install.packages("maps")
+library(maps)
+# install.packages("mapproj")
+library(mapproj)
+library(maps)
+# install.packages("maptools")
+library(maptools)
 
 options(stringsAsFactors = FALSE)
 
@@ -153,13 +162,21 @@ qplot(y=mean, x=state, data=care.df,
   geom_bar(fill="#FF9999", colour="#222222") +
   geom_errorbar(limits, width=0.25)
 
-# In this code, the error bars are fixed. This is basically what we want!
-# (All it took was working out binomial proportion sd instead of sd().)
-# ((I am not a clever man.))
-
 # At this point a visualization or two more should suffice. I'll incorporate
-# a state-based one (like Heather suggested), and additionally a brief one
+# a state-based one (like Heather suggested and used), and additionally a brief one
 # zooming in (ideally) to show veteran disability ratings in MS vs. AK.
 
 # State:
+ 
+map.st <- map_data("state")
+table.agg2 <- table.agg
+table.agg2[,1] <- tolower(c(state.name, "district of columbia"))
+ggplot(table.agg2, aes(map_id = State)) +
+  geom_map(aes(fill = NotSelfCare), map = map.st, color="black") +
+  expand_limits(x = map.st$long, y = map.st$lat) +
+  scale_fill_gradient(low = "white", high = "red")
 
+# At this point, it's missing Alaska and Hawaii. I'm going to get the
+# veteran disability chart done first, make sure everything's prepared
+# to send, and then spend a few hours checking out how to get them 
+# incorporated (if possible).
