@@ -57,23 +57,16 @@ unzip.state <- function(state){
 
 lapply(st.name, unzip.state)
 
-# Normally the commented function would work beautifully; however, running Windows and
-# having spaces in my working directory means I cannot run this function, and thus must
-# cut everything manually. Awesome.
-#
-# cut.state <- function(state){
-#   ddir <- paste(getwd(), "/data", sep="")
-#   csv.cut <- paste(ddir, "/ss12p", state, "-cut.csv", sep="")
-#   if(file.exists(csv.cut) == FALSE) {
-#     csv.src <- paste(ddir, "/ss12p", state, ".csv", sep="")
-#     shell(paste("cut -d, -f6,7,14,17,19,75,112,141", shQuote(csv.src), ">", shQuote(csv.cut), sep=" "))
-#   }
-# }
-#
-# Now it is just a matter of importing the data into data frames.
-# (A loop is used here rather than the much more pleasant lapply method;
-#  I coudn't quite figure out how to modify the workspace data from within
-#  a function.)
+cut.state <- function(state){
+  ddir <- paste(getwd(), "/data", sep="")
+  csv.cut <- paste(ddir, "/ss12p", state, "-cut.csv", sep="")
+  if(file.exists(csv.cut) == FALSE) {
+    csv.src <- paste(ddir, "/ss12p", state, ".csv", sep="")
+    system(paste("cut -d, -f6,7,14,17,19,75,112,141", sQuote(csv.src), ">", sQuote(csv.cut), sep=" "))
+  }
+}
+
+lapply(st.name, cut.state)
 
 i=0;
 while (i < 51) {
@@ -101,7 +94,6 @@ while (i < 51) {
 sort.state <- function(state){
   obj.temp <- mutate(get(paste("table.", state, sep="")),
                 WAGP_A = ADJINC * (WAGP / 1000000),
-                WAGP_SD =
                 PINCP_A = ADJINC * (PINCP / 1000000),
                 DOUT_A = -1*(DOUT - 2),
                 DDRS_A = -1*(DDRS - 2))
@@ -125,11 +117,13 @@ colnames(table.agg) <- c("State",  "AvgWage", "SdWage",
                          "NotSelfCare", "SdCare")
 
 sum.state <- function(state){
+  sd.work <- get(paste("table.", state, sep=""))[,6]
+  sdcare <- sqrt(mean(sd.work)*(1-mean(sd.work))/length(sd.work))
   obj <- summarize(get(paste("table.", state, sep="")),
                    mean(WAGP_A), sd(WAGP_A), 
                    mean(PINCP_A),sd(PINCP_A),
                    mean(DOUT_A), sd(DOUT_A),
-                   mean(DDRS_A), sd(DDRS_A))  
+                   mean(DDRS_A), sdcare)  
   return(obj)
 }
 
@@ -139,39 +133,7 @@ while (i < 51) {
   table.agg[i,2:9] <- sum.state(st.name[i])
 }
 
-# First, by proportions incapable of independent living:
-
-order(table.agg$NotIndep)
-indep.mean <- cbind(table.agg$NotIndep[order(table.agg$NotIndep)],
-                    st.name[order(table.agg$NotIndep)])
-
-indep.df <- data.frame(state = reorder(indep.mean[,2],order(as.numeric(indep.mean[,1]))),
-                       mean = as.numeric(indep.mean[,1]),
-                       se = table.agg$SdIndep[order(table.agg$NotIndep)])
-
-limits <- aes(ymax= mean + se, ymin= mean-se)
-
-# Time to make a graph!
-
-qplot(y=mean, x=state, data=indep.df,
-      main = "Proportion of veterans incapable of independent living",
-      xlab="State", ylab="Proportion of surveyed veterans") +
-      geom_bar(fill="white", colour="grey")
-
-# Oh, hey, that looks pretty nice...
-
-qplot(y=mean, x=state, data=indep.df,
-      main = "Proportion of veterans incapable of independent living",
-      xlab="State", ylab="Proportion of surveyed veterans") +
-      geom_bar(fill="white", colour="grey") +
-      geom_errorbar(limits, width=0.25)
-
-# My entire life is pain.
-#
-# At this point, just repeating the process for each other variable and 
-# asking the group tomorrow in class:
-
-# Second, by proportions incapable of self-care:
+# By proportions incapable of self-care:
 
 order(table.agg$NotSelfCare)
 care.mean <- cbind(table.agg$NotSelfCare[order(table.agg$NotSelfCare)],
@@ -181,82 +143,23 @@ care.df <- data.frame(state = reorder(care.mean[,2],order(as.numeric(care.mean[,
                        mean = as.numeric(care.mean[,1]),
                        se = table.agg$SdCare[order(table.agg$NotSelfCare)])
 
-limits <- aes(ymax= mean + se, ymin= mean-se)
+limits <- aes(ymax= mean + qnorm(0.975)*se, ymin= mean-qnorm(0.975)*se)
 
-# Time to make a graph!
-
-qplot(y=mean, x=state, data=care.df,
-      main = "Proportion of veterans experiencing difficulty with self-care",
-      xlab="State", ylab="Proportion of surveyed veterans") +
-  geom_bar(fill="white", colour="grey")
-
-# And once again, with the error bars...
+# Time to make a graph with error bars!
 
 qplot(y=mean, x=state, data=care.df,
       main = "Proportion of veterans experiencing difficulty with self-care",
       xlab="State", ylab="Proportion of surveyed veterans") +
-  geom_bar(fill="white", colour="grey") +
+  geom_bar(fill="#FF9999", colour="#222222") +
   geom_errorbar(limits, width=0.25)
 
-# Life is pain.
-#
-# Third, average wages for veterans:
+# In this code, the error bars are fixed. This is basically what we want!
+# (All it took was working out binomial proportion sd instead of sd().)
+# ((I am not a clever man.))
 
-order(table.agg$AvgWage)
-wage.mean <- cbind(table.agg$AvgWage[order(table.agg$AvgWage)],
-                   st.name[order(table.agg$AvgWage)])
+# At this point a visualization or two more should suffice. I'll incorporate
+# a state-based one (like Heather suggested), and additionally a brief one
+# zooming in (ideally) to show veteran disability ratings in MS vs. AK.
 
-wage.df <- data.frame(state = reorder(wage.mean[,2],order(as.numeric(wage.mean[,1]))),
-                      mean = as.numeric(wage.mean[,1]),
-                      se = table.agg$SdWage[order(table.agg$AvgWage)])
+# State:
 
-limits <- aes(ymax= mean + se, ymin= mean-se)
-
-# Time to make a graph!
-
-qplot(y=mean, x=state, data=wage.df,
-      main = "Average wages (adjusted) for veterans by state",
-      xlab="State", ylab="Average wage (adjusted) in dollars") +
-  geom_bar(fill="white", colour="grey")
-
-# And once again, with the error bars...
-
-qplot(y=mean, x=state, data=wage.df,
-      main = "Average wages (adjusted) for veterans by state",
-      xlab="State", ylab="Average wage (adjusted) in dollars") +
-  geom_bar(fill="white", colour="grey") +
-  geom_errorbar(limits, width=0.25)
-
-# Yep.
-#
-# Finally, average incomes:
-
-order(table.agg$AvgInc)
-inc.mean <- cbind(table.agg$AvgInc[order(table.agg$AvgInc)],
-                   st.name[order(table.agg$AvgInc)])
-
-inc.df <- data.frame(state = reorder(inc.mean[,2],order(as.numeric(inc.mean[,1]))),
-                      mean = as.numeric(inc.mean[,1]),
-                      se = table.agg$SdInc[order(table.agg$AvgInc)])
-
-limits <- aes(ymax= mean + se, ymin= mean-se)
-
-# Time to make a graph!
-
-qplot(y=mean, x=state, data=inc.df,
-      main = "Average income (adjusted) for veterans by state",
-      xlab="State", ylab="Average income (adjusted) in dollars") +
-  geom_bar(fill="white", colour="grey")
-
-# And once again, with the error bars...
-
-qplot(y=mean, x=state, data=inc.df,
-      main = "Average income (adjusted) for veterans by state",
-      xlab="State", ylab="Average income (adjusted) in dollars") +
-  geom_bar(fill="white", colour="grey") +
-  geom_errorbar(limits, width=0.25)
-
-# In some cases, we even can see that veterans are probably making more than 0 dollars yearly!
-#
-# Having done what I can, I'm pushing this to git.
-# Hope to have this fixed within a few hours.
