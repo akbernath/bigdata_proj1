@@ -1,5 +1,6 @@
 # Code to repeat for all states
 library(dplyr)
+##USED Charlottes template to automate file downloads for all states
 
 # 1. download all state 5year files
 # 2. unzip all state 5year files
@@ -57,6 +58,8 @@ any(status == "failed to cut")
 
 51*11 #elements of mat
 
+#create empty matrix to store summary values
+#fill with zeros to account for no proportion in category 
 nrg_types<-matrix(rep(0,624),nrow=52)
 nrg_types[,1]<-c("State",tolower(state.name[1:50]),tolower("District of Columbia"))
 nrg_types[,2]<-c("Abb",state_names)
@@ -77,6 +80,7 @@ for(i in 1:51){
                            n_missing = sum(is.na(HFL)))
   
   nrg_summary2 <- mutate(nrg_summary, prop = round(n/sum(n),6))
+  #store summary porportion in appropriate cell
   for(j in 1:(length(nrg_summary2$energy_type)-1)){
     for(k in 3:11){
       if(nrg_summary2$energy_type[j]==nrg_types[1,k]){
@@ -93,6 +97,7 @@ sum_nrg<-read.csv("/Users/heatherhisako1/Documents/bigdata_proj1/nrg_types.csv",
 names(sum_nrg)
 library(ggplot2)
 
+#lets just look at proportions of households that mostly use solar energy
 solar.prop<-c(as.numeric(nrg_types[2:52,9]))
 solar.mat<-cbind(solar.prop,state_names[1:51])
 new.solar<-solar.mat[order(solar.prop),]
@@ -107,77 +112,14 @@ qplot(as.numeric(new.elec[,1]),reorder(new.elec[,2],order(as.numeric(new.elec[,1
 
 ##### electricity bill 
 
-e.bill<-matrix(rep(0,156),nrow=3)
-e.bill[1,]<-c("State",state_names)
-e.bill[,1]<-c("State","Mean Elec Bill","SD Elec Bill")
-e.bill[,1]
-for(i in 1:51){
-  h=i+1
-  state<-read.csv(paste("/Users/heatherhisako1/ss12h",state_names[i],"-cut.csv",sep=""),header=TRUE)
-  state_df <- tbl_df(state)
- 
-  e.bill[2,h]=mean(state_df$ELEP,na.rm=TRUE)
-  e.bill[3,h]=sd(state_df$ELEP,na.rm=TRUE)
- 
-}
-
-head(e.bill)
-
-mean<-e.bill[2,2:52]
-se<-e.bill[3,2:52]
-
-e.mat<-cbind(mean,se,state_names)
-new.emat<-e.mat[order(as.numeric(mean)),]
-head(new.emat)
-
-ord_mean_bill<-as.numeric(new.emat[,1])
-ord_sd_bill<-as.numeric(new.emat[,2])
-ord_state_e<-new.emat[,3]
-
-new.emat<-cbind(ord_mean_bill,ord_sd_bill,ord_state_e)
-
-
-qplot(ord_mean_bill, reorder(ord_state_e,ord_mean_bill))
-
-install.packages("Hmisc", dependencies=T)
-library("Hmisc")
-
-d = data.frame(
-  x  = reorder(ord_state_e,ord_mean_bill)
-  , y  = ord_mean_bill
-  , sd = ord_sd_bill
-)
-
-#plot of mean electricty bill and standard error bars
-plot(d$x, d$y, ylim=c(min(d$y-d$sd),max(d$y+d$sd)),type="n",main="Average Electricity Bill by State with Standard Error Bars",xlab="Average Electricity Bill",ylab="State")
-with (
-  data = d
-  , expr = errbar(x, y, y+sd, y-sd, add=T, pch=1, cap=.1)
-)
-
-#use ggplot to show point estimates and standard error bars
-df <- data.frame(
-  state = factor(reorder(ord_state_e,ord_mean_bill)),
-  mean = ord_mean_bill,
-  se = ord_sd_bill
-)
-
-limits <- aes(ymax = mean + se, ymin=mean - se)
-
-p <- ggplot(df, aes(fill=mean,y=mean, x=state,main="Average Electricity Bill by State"))
-p
-
-p + geom_bar(position="dodge", stat="identity")
-dodge <- position_dodge(width=0.9)
-
-p + geom_bar(position=dodge) + 
-  geom_errorbar(limits, position=dodge, width=0.25)+
-  ggtitle("Average Electricity Bill by State")+xlab("State")+ylab("Average Energy Bill Cost")+
-  scale_fill_gradient(low = "white", high = "blue")
-
-###it looks like using means is a bad idea to look at center
+##I deleted a lot of code here because the resulting plots didn't really convey 
+##the right story 
+## first I tried looking at mean bills and standard deviations
+##however,it looks like using means is a bad idea to look at center
 ##looks like the data is skewed because bills cant be negative
 ##lets look at medians instead and the 25% and 75% quartiles 
+
+#create matrix of zeros 
 e.billmed<-matrix(rep(0,260),nrow=52)
 e.billmed[,1]<-c("State",state_names)
 e.billmed[1,]<-c("State","MeanElec","25Elec","MedElec","75Elec")
@@ -186,7 +128,11 @@ for(i in 1:51){
   h=i+1
   state<-read.csv(paste("/Users/heatherhisako1/ss12h",state_names[i],"-cut.csv",sep=""),header=TRUE)
   state_df <- tbl_df(state)
-  
+  #fill matrix with appropriate information 
+  #ELEP Codes
+  # 001 Included in rent or condo fee
+  # 002 No charge or electricity not used
+  # 003 - 999 Electricity bill rounded and top-coded
   e.billmed[h,2]=mean(state_df$ELEP[state_df$ELEP %in% c(3:999)])
   e.billmed[h,3]=quantile(state_df$ELEP[state_df$ELEP %in% c(3:999)])[2]
   e.billmed[h,4]=quantile(state_df$ELEP[state_df$ELEP %in% c(3:999)])[3]
@@ -195,12 +141,14 @@ for(i in 1:51){
 }
 head(e.billmed)
 
+#store for later use
 mean<-e.billmed[2:52,2]
 q25<-e.billmed[2:52,3]
 med<-e.billmed[2:52,4]
 q75<-e.billmed[2:52,5]
 
 e.matmed<-cbind(med,mean,q25,q75,state_names)
+#reorder so medians are in ascending order
 new.ematmed<-e.matmed[order(as.numeric(med)),]
 head(new.ematmed)
 
@@ -214,6 +162,7 @@ new.ematmed<-cbind(ord_med_bill,ord_mean_bill,ord_q25_bill,ord_q75_bill,ord_stat
 
 head(new.ematmed)
 
+#plot with IQR bars
 install.packages("Hmisc", dependencies=T)
 library("Hmisc")
 
@@ -235,56 +184,7 @@ points(d$x, d$z, col="red")
 axis(1, at=d$x,labels=c(ord_state_e), col.axis="red", las=1,cex.axis=0.5)
 legend(locator(1), c("State Median Bill","State Mean Bill"),pch = c(1,1), col=c("black","red"),bty="n")
 
-
-###fuel cost
-
-f.bill<-matrix(rep(0,156),nrow=3)
-f.bill[1,]<-c("State",state_names)
-f.bill[,1]<-c("State","Mean Fuel Bill","SD Fuel Bill")
-f.bill[,1]
-for(i in 1:51){
-  h=i+1
-  state<-read.csv(paste("/Users/heatherhisako1/ss12h",state_names[i],"-cut.csv",sep=""),header=TRUE)
-  state_df <- tbl_df(state)
-  
-  f.bill[2,h]=mean(state_df$FULP,na.rm=TRUE)
-  f.bill[3,h]=sd(state_df$FULP,na.rm=TRUE)
-  
-}
-
-mean<-f.bill[2,2:52]
-se<-f.bill[3,2:52]
-
-f.mat<-cbind(mean,se,state_names)
-new.fmat<-f.mat[order(as.numeric(mean)),]
-
-ord_mean_fbill<-as.numeric(new.fmat[,1])
-ord_sd_fbill<-as.numeric(new.fmat[,2])
-ord_state_f<-new.fmat[,3]
-
-new.fmat<-cbind(ord_mean_fbill,ord_sd_fbill,ord_state_f)
-
-
-#use ggplot to show point estimates and standard error bars
-df2 <- data.frame(
-  state = factor(reorder(ord_state_f,ord_mean_fbill)),
-  mean = ord_mean_fbill,
-  se = ord_sd_fbill
-)
-
-limits <- aes(ymax = mean + se, ymin=mean - se)
-
-p <- ggplot(df2, aes(fill=mean,y=mean, x=state,main="Average Fuel Bill by State"))
-p
-
-p + geom_bar(position="dodge", stat="identity")
-dodge <- position_dodge(width=0.9)
-
-p + geom_bar(position=dodge) + 
-  geom_errorbar(limits, position=dodge, width=0.25)+
-  ggtitle("Average Fuel Bill by State")+xlab("State")+ylab("Average Fuel Bill Cost")+
-  scale_fill_gradient(low = "white", high = "green")
-### again lets do medians instead
+##do the same as above for fuel cost
 
 f.billmed<-matrix(rep(0,260),nrow=52)
 f.billmed[,1]<-c("State",state_names)
@@ -295,6 +195,10 @@ for(i in 1:51){
   state<-read.csv(paste("/Users/heatherhisako1/ss12h",state_names[i],"-cut.csv",sep=""),header=TRUE)
   state_df <- tbl_df(state)
   
+  #FULP codes
+  # 0001 Included in rent or in condo fee
+  # 0002 No charge or these fuels not used
+  # 0003 - 9999 Fuel Bill rounded and top coded
   f.billmed[h,2]=mean(state_df$FULP[state_df$FULP %in% c(3:9999)])
   f.billmed[h,3]=quantile(state_df$FULP[state_df$FULP %in% c(3:9999)])[2]
   f.billmed[h,4]=quantile(state_df$FULP[state_df$FULP %in% c(3:9999)])[3]
@@ -341,57 +245,8 @@ axis(1, at=d$x,labels=c(ord_state_e), col.axis="red", las=1,cex.axis=0.5)
 legend(locator(1), c("State Median Bill","State Mean Bill"),pch = c(1,1), col=c("black","red"),bty="n")
 
 
-
-###gas cost
-
-g.bill<-matrix(rep(0,156),nrow=3)
-g.bill[1,]<-c("State",state_names)
-g.bill[,1]<-c("State","Mean Gas Bill","SD Gas Bill")
-g.bill[,1]
-for(i in 1:51){
-  h=i+1
-  state<-read.csv(paste("/Users/heatherhisako1/ss12h",state_names[i],"-cut.csv",sep=""),header=TRUE)
-  state_df <- tbl_df(state)
-  
-  g.bill[2,h]=mean(state_df$GASP,na.rm=TRUE)
-  g.bill[3,h]=sd(state_df$GASP,na.rm=TRUE)
-  
-}
-
-mean.g<-g.bill[2,2:52]
-se.g<-g.bill[3,2:52]
-
-g.mat<-cbind(mean.g,se.g,state_names)
-new.gmat<-g.mat[order(as.numeric(mean.g)),]
-
-ord_mean_gbill<-as.numeric(new.gmat[,1])
-ord_sd_gbill<-as.numeric(new.gmat[,2])
-ord_state_g<-new.fmat[,3]
-
-new.gmat<-cbind(ord_mean_gbill,ord_sd_gbill,ord_state_g)
-
-
-#use ggplot to show point estimates and standard error bars
-df3 <- data.frame(
-  state = factor(reorder(ord_state_g,ord_mean_gbill)),
-  mean = ord_mean_gbill,
-  se = ord_sd_gbill
-)
-
-limits <- aes(ymax = mean + se, ymin=mean - se)
-
-p <- ggplot(df3, aes(fill=mean,y=mean, x=state,main="Average Gas Bill by State"))
-p
-
-p + geom_bar(position="dodge", stat="identity")
-dodge <- position_dodge(width=0.9)
-
-p + geom_bar(position=dodge) + 
-  geom_errorbar(limits, position=dodge, width=0.25)+
-  ggtitle("Average Gas Bill by State")+xlab("State")+ylab("Average Gas Bill Cost")+
-  scale_fill_gradient(low = "white", high = "red")
-
-### again lets do medians instead
+##same as above
+###for gas cost
 
 g.billmed<-matrix(rep(0,260),nrow=52)
 g.billmed[,1]<-c("State",state_names)
@@ -401,7 +256,12 @@ for(i in 1:51){
   h=i+1
   state<-read.csv(paste("/Users/heatherhisako1/ss12h",state_names[i],"-cut.csv",sep=""),header=TRUE)
   state_df <- tbl_df(state)
-  
+  #fill matrix with appropriate information 
+  #GASP Codes
+  # 001 Included in rent or condo fee
+  # 002 Included in electricity payment
+  # 003 No charge or gas not used
+  # 003 - 999 Gas bill rounded and top-coded
   g.billmed[h,2]=mean(state_df$GASP[state_df$GASP %in% c(4:999)])
   g.billmed[h,3]=quantile(state_df$GASP[state_df$GASP %in% c(4:999)])[2]
   g.billmed[h,4]=quantile(state_df$GASP[state_df$GASP %in% c(4:999)])[3]
@@ -451,6 +311,7 @@ legend(locator(1), c("State Median Bill","State Mean Bill"),pch = c(1,1), col=c(
 
 
 ####map plots
+##tried on my own first
 sum_nrg<-read.csv("/Users/heatherhisako1/Documents/bigdata_proj1/nrg_types.csv",header=TRUE)
 names(sum_nrg)
 
@@ -459,6 +320,7 @@ install.packages("maps")
 require(maps)
 require(ggplot2)
 state=map_data("state")
+#this only give contiguous states
 
 # Not faceted
 states_map = map_data("state")
@@ -555,7 +417,7 @@ head(usa_all)
 
 #plot
 
-
+#changed names to get rid of spaces
 colnames(sum_nrg)[1]="state_name"
 colnames(sum_nrg)[2]="state"
 colnames(sum_nrg)[9]="Solar_Energy"
@@ -588,6 +450,7 @@ dim(usa_all)
 
 names(sum_nrg)
 
+#make a list of plots
 plots=list()
 plots[[1]]=ggplot(foo, aes(x,y, fill = Utility_Gas,group = group)) +
   geom_polygon(color = "grey",size=.15) +
