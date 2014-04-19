@@ -9,9 +9,6 @@ library(ggplot2)
 library(maps)
 # install.packages("mapproj")
 library(mapproj)
-library(maps)
-# install.packages("maptools")
-library(maptools)
 
 options(stringsAsFactors = FALSE)
 
@@ -183,34 +180,45 @@ ggplot(table.agg2, aes(map_id = State),
 # to send, and then spend a few hours checking out how to get them 
 # incorporated (if possible).
 
-# install.packages("sqldf")
-library(sqldf)
-
 drat.ms <- select(table.ms, -2,-3,-4,-5,-6)
 drat.nd <- select(table.nd, -2,-3,-4,-5,-6)
-drat.ms[is.na(drat.ms)] <- 0
-drat.nd[is.na(drat.nd)] <- 0
+drat.msrm <- na.omit(drat.ms)
+drat.ndrm <- na.omit(drat.nd)
 
-num <- numeric(42)
+num <- numeric(36)
 drat <- matrix(num, ncol=3)
 drat <- as.data.frame(drat)
 colnames(drat) <- c("Proportion", "Response", "State")
-drat[,2] <- rep(0:6,2)
-drat[,3] <- c(rep("Mississippi",7), rep("North Dakota",7))
-i = 0; while (i < 7) {
-  drat[i+1,1] <- length(which(drat.ms[,1]==i)) / length(drat.ms[,1])
+
+drat[1,2] <- "10 Percent"
+drat[7,2] <- "10 Percent"
+drat[2,2] <- "20 Percent"
+drat[8,2] <- "20 Percent"
+drat[3,2] <- "30-40 Percent"
+drat[9,2] <- "30-40 Percent"
+drat[4,2] <- "50-60 Percent"
+drat[10,2] <- "50-60 Percent"
+drat[5,2] <- "70-100 Percent"
+drat[11,2] <- "70-100 Percent"
+drat[6,2] <- "Elected not to answer"
+drat[12,2] <- "Elected not to answer"
+
+drat[,3] <- c(rep("North Dakota",6), rep("Mississippi",6))
+i = 0; while (i < 6) {
+  drat[i+1,1] <- length(which(drat.ndrm[,1]==i+1)) / length(drat.ndrm[,1])
   i = i+1;
 }
-i = 0; while (i < 7) {
-  drat[i+8,1] <- length(which(drat.nd[,1]==i)) / length(drat.nd[,1])
+i = 0; while (i < 6) {
+  drat[i+7,1] <- length(which(drat.msrm[,1]==i+1)) / length(drat.msrm[,1])
   i = i+1;
 }
 
 ggplot(data=drat,
        aes(x=factor(1), y=Proportion, fill = factor(Response))) +
   geom_bar(width = 1) + facet_grid(facets=. ~ State) +
-  coord_polar(theta="y")
+  coord_polar(theta="y") + xlab("") + ylab("") +
+  labs(fill="Proportion", title="Veteran Disability Rating")
 
-# These provide very little information with the flooding of NAs;
-# if nothing else, however, it does indicate that roughly the same
-# proportion of veterans didn't answer the question between states!
+# This pie chart, while imperfect, does at least give us some concise
+# info. I'm attaching it just in case, with the acknowledgment that we
+# probably won't want to use it (especially with four members presenting!)
