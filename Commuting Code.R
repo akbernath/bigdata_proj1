@@ -146,12 +146,12 @@ LA.data <- ddply(home_LA, .(JWTR), summarise,
                  mean=mean(JWMNP,na.rm=TRUE),
                  sd=sd(JWMNP,na.rm=TRUE))
 LA.data[,4] <- rep(0,13)
-LA.data[,5] <- rep("Los Angeles",11)
-colnames(LA.data) <- c("type","mean","sd","se","city")
+LA.data[,5] <- rep("Los Angeles",13)
+colnames(LA.data) <- c("type","mean","sd","se","City")
 
 ##  Loop to create standard errors
 for(i in 1:13)(
-  LA.data[i,4] <- LA.data$sd[i]/LA.cnt$freq[i]-
+  LA.data[i,4] <- LA.data$sd[i]/LA.cnt$freq[i]
   )
 
 ##  Portland
@@ -159,8 +159,8 @@ PD.data <- ddply(home_PD, .(JWTR), summarise,
                  mean=mean(JWMNP,na.rm=TRUE),
                  sd=sd(JWMNP,na.rm=TRUE))
 PD.data[,4] <- rep(0,13)
-PD.data[,5] <- rep("Portland",11)
-colnames(PD.data) <- c("type","mean","sd","se","city")
+PD.data[,5] <- rep("Portland",13)
+colnames(PD.data) <- c("type","mean","sd","se","City")
 
 ##  Loop to create standard errors
 for(i in 1:13)(
@@ -173,7 +173,7 @@ PD.data <- PD.data[c(-11,-13),]
 
 ##  Re-label types
 LA.data$type <- PD.data$type <- c("Car/Truck/Van","Bus",
-                "Streetcar","Subway","Railroad","Ferryboat",
+                "Streetcar","Subway","Railroad","Ferry",
                 "Taxi","Motorcycle","Bicycle","Walked","Other")
 
 
@@ -184,18 +184,16 @@ dodge <- position_dodge(width=0.8)
 #### Following section added in 4th commit ####
 ## Visualization  ##
 
-ggplot(data=city.data, aes(x=factor(type),y=mean,fill=city))+
+ggplot(data=city.data, aes(x=factor(type),y=mean,fill=City))+
   geom_bar(stat="identity",position=dodge,color="black",width=0.8)+
   ggtitle("Mean Travel Time by Type")+
   theme(plot.title=element_text(size=24,face="bold"))+
   xlab("Transportation Type")+
   ylab("Average Travel Time (minutes)")+
-  scale_fill_manual(values=c("#996633","#33CC33"))+
-  geom_abline(intercept=la.avgtime,slope=0,color="#996633",size=1)+
+  scale_fill_manual(values=c("#456AB4","#33CC33"))+
+  geom_abline(intercept=la.avgtime,slope=0,color="#456AB4",size=1)+
   geom_abline(intercept=pd.avgtime,slope=0,color="#33CC33",size=1)+
-  geom_text(aes(10.5,31,label="LA Average"))+
-  geom_text(aes(10.5,23.5,label="Portland Average"))+
+  geom_text(aes(10.5,31,label="LA Average"),size=4)+
+  geom_text(aes(10.5,23.5,label="Portland Average"),size=4)+
   geom_errorbar(limits,position=dodge,width=0.25)
-
-
 
