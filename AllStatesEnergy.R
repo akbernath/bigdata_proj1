@@ -486,7 +486,7 @@ plots[[2]]=ggplot(foo, aes(x,y, fill = Bottled_tank_or_LPGas,group = group)) +
 
 plots[[3]]=ggplot(foo, aes(x,y, fill = Electricity,group = group)) +
   geom_polygon(color = "grey",size=.15) +
-  scale_fill_gradient(low = "white", high = "blue")+
+  scale_fill_gradient(name="",low = "white", high = "blue")+
   coord_fixed()+ggtitle("Electricity")+theme_minimal()+
   theme(axis.line=element_blank(),axis.text.x=element_blank(),
         axis.text.y=element_blank(),axis.ticks=element_blank(),
@@ -498,7 +498,7 @@ plots[[3]]=ggplot(foo, aes(x,y, fill = Electricity,group = group)) +
 
 plots[[4]]=ggplot(foo, aes(x,y, fill = Fuel_oil_kerosene_etc,group = group)) +
   geom_polygon(color = "grey",size=.15) +
-  scale_fill_gradient(low = "white", high = "blue")+
+  scale_fill_gradient(name="",low = "white", high = "blue")+
   coord_fixed()+ggtitle(" Fuel, Oil, Kerosene, etc.")+theme_minimal()+
   theme(axis.line=element_blank(),axis.text.x=element_blank(),
         axis.text.y=element_blank(),axis.ticks=element_blank(),
@@ -510,7 +510,7 @@ plots[[4]]=ggplot(foo, aes(x,y, fill = Fuel_oil_kerosene_etc,group = group)) +
 
 plots[[5]]=ggplot(foo, aes(x,y, fill = Coal_or_Coke,group = group)) +
   geom_polygon(color = "grey",size=.15) +
-  scale_fill_gradient(low = "white", high = "blue")+
+  scale_fill_gradient(name="",low = "white", high = "blue")+
   coord_fixed()+ggtitle(" Coal or Coke")+theme_minimal()+
   theme(axis.line=element_blank(),axis.text.x=element_blank(),
         axis.text.y=element_blank(),axis.ticks=element_blank(),
@@ -523,7 +523,7 @@ plots[[5]]=ggplot(foo, aes(x,y, fill = Coal_or_Coke,group = group)) +
 
 plots[[6]]=ggplot(foo, aes(x,y, fill = Wood,group = group)) +
   geom_polygon(color = "grey",size=.15) +
-  scale_fill_gradient(low = "white", high = "blue")+
+  scale_fill_gradient(name="",low = "white", high = "blue")+
   coord_fixed()+ggtitle(" Wood")+theme_minimal()+
   theme(axis.line=element_blank(),axis.text.x=element_blank(),
         axis.text.y=element_blank(),axis.ticks=element_blank(),
@@ -536,7 +536,7 @@ plots[[6]]=ggplot(foo, aes(x,y, fill = Wood,group = group)) +
 
 plots[[7]]=ggplot(foo, aes(x,y, fill = Solar_Energy,group = group)) +
   geom_polygon(color = "grey",size=.15) +
-  scale_fill_gradient(low = "white", high = "blue")+
+  scale_fill_gradient(name="",low = "white", high = "blue")+
   coord_fixed()+ggtitle("Solar Energy")+theme_minimal()+
   theme(axis.line=element_blank(),axis.text.x=element_blank(),
         axis.text.y=element_blank(),axis.ticks=element_blank(),
@@ -548,7 +548,7 @@ plots[[7]]=ggplot(foo, aes(x,y, fill = Solar_Energy,group = group)) +
 
 plots[[8]]=ggplot(foo, aes(x,y, fill = Other_Fuel,group = group)) +
   geom_polygon(color = "grey",size=.15) +
-  scale_fill_gradient(low = "white", high = "blue")+
+  scale_fill_gradient(name="",low = "white", high = "blue")+
   coord_fixed()+ggtitle("Other Fuel")+theme_minimal()+
   theme(axis.line=element_blank(),axis.text.x=element_blank(),
         axis.text.y=element_blank(),axis.ticks=element_blank(),
@@ -560,7 +560,7 @@ plots[[8]]=ggplot(foo, aes(x,y, fill = Other_Fuel,group = group)) +
 
 plots[[9]]=ggplot(foo, aes(x,y, fill = No_Fuel_Used,group = group)) +
   geom_polygon(color = "grey",size=.15) +
-  scale_fill_gradient(low = "white", high = "blue")+
+  scale_fill_gradient(name="",low = "white", high = "blue")+
   coord_fixed()+ggtitle("No Fuel Used")+theme_minimal()+
   theme(axis.line=element_blank(),axis.text.x=element_blank(),
         axis.text.y=element_blank(),axis.ticks=element_blank(),
