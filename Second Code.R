@@ -164,14 +164,16 @@ qplot(y=mean, x=state, data=care.df,
 
 # At this point a visualization or two more should suffice. I'll incorporate
 # a state-based one (like Heather suggested and used), and additionally a brief one
-# zooming in (ideally) to show veteran disability ratings in MS vs. AK.
+# zooming in (ideally) to show veteran disability ratings in MS vs. AK/ND.
 
 # State:
  
 map.st <- map_data("state")
 table.agg2 <- table.agg
-table.agg2[,1] <- tolower(c(state.name, "district of columbia"))
-ggplot(table.agg2, aes(map_id = State)) +
+table.agg2[,1] <- tolower(c(state.name, "District of Columbia"))
+ggplot(table.agg2, aes(map_id = State),
+       main="Proportion of Veterans Capable of Self-Care (by state)",
+       xlab="x (Longitude)", ylab="y (Latitude)") +
   geom_map(aes(fill = NotSelfCare), map = map.st, color="black") +
   expand_limits(x = map.st$long, y = map.st$lat) +
   scale_fill_gradient(low = "white", high = "red")
@@ -180,3 +182,35 @@ ggplot(table.agg2, aes(map_id = State)) +
 # veteran disability chart done first, make sure everything's prepared
 # to send, and then spend a few hours checking out how to get them 
 # incorporated (if possible).
+
+# install.packages("sqldf")
+library(sqldf)
+
+drat.ms <- select(table.ms, -2,-3,-4,-5,-6)
+drat.nd <- select(table.nd, -2,-3,-4,-5,-6)
+drat.ms[is.na(drat.ms)] <- 0
+drat.nd[is.na(drat.nd)] <- 0
+
+num <- numeric(42)
+drat <- matrix(num, ncol=3)
+drat <- as.data.frame(drat)
+colnames(drat) <- c("Proportion", "Response", "State")
+drat[,2] <- rep(0:6,2)
+drat[,3] <- c(rep("Mississippi",7), rep("North Dakota",7))
+i = 0; while (i < 7) {
+  drat[i+1,1] <- length(which(drat.ms[,1]==i)) / length(drat.ms[,1])
+  i = i+1;
+}
+i = 0; while (i < 7) {
+  drat[i+8,1] <- length(which(drat.nd[,1]==i)) / length(drat.nd[,1])
+  i = i+1;
+}
+
+ggplot(data=drat,
+       aes(x=factor(1), y=Proportion, fill = factor(Response))) +
+  geom_bar(width = 1) + facet_grid(facets=. ~ State) +
+  coord_polar(theta="y")
+
+# These provide very little information with the flooding of NAs;
+# if nothing else, however, it does indicate that roughly the same
+# proportion of veterans didn't answer the question between states!
