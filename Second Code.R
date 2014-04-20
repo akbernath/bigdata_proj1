@@ -222,3 +222,25 @@ ggplot(data=drat,
 # This pie chart, while imperfect, does at least give us some concise
 # info. I'm attaching it just in case, with the acknowledgment that we
 # probably won't want to use it (especially with four members presenting!)
+
+# Now to convert it to simultaneous bar plots...
+
+drat.msrm.2 <- cbind(drat.msrm, rep("Mississippi", length(drat.msrm[,1])))
+colnames(drat.msrm.2) <- c("DR", "State")
+drat.ndrm.2 <- cbind(drat.ndrm, rep("North Dakota", length(drat.ndrm[,1])))
+colnames(drat.ndrm.2) <- c("DR", "State")
+drat.rm <- rbind(drat.msrm.2,drat.ndrm.2)
+
+drat.rm[drat.rm == 1] <- "10 percent"
+drat.rm[drat.rm == 2] <- "20 percent"
+drat.rm[drat.rm == 3] <- "30-40 percent"
+drat.rm[drat.rm == 4] <- "50-60 percent"
+drat.rm[drat.rm == 5] <- "70-100 percent"
+drat.rm[drat.rm == 6] <- "Elected not to answer"
+
+drat.g <- group_by(drat.rm, DR, State)
+drats.1 <- summarize(drat.g, count= n())
+drats.2[,4] <- rep(c(length(drat.msrm[,1]), length(drat.ndrm[,1])),6)
+
+ggplot(drat.sum, aes(x=DR, fill=State)) +
+  geom_bar(position="dodge")
