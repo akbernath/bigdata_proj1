@@ -10,6 +10,7 @@ setwd("D:/School/Spring 14/ST - Big Data/Proj1")
 library(dplyr)
 library(plyr)
 library(ggplot2)
+library(tables)
 options(stringsAsFactors = FALSE)
 
 #########################
@@ -125,9 +126,11 @@ pd.type.na <- count(is.na(home_PD$JWTR))
 
 ##  Proportion of types of transportation
 la.counts <- count(home_LA$JWTR)
-la.counts[,2] <- la.counts[,2]/la.type.na[1,2]
+la.counts[,2] <- round_any(100*la.counts[,2]/la.type.na[1,2],
+                           0.01,f=round)
 pd.counts <- count(home_PD$JWTR)
-pd.counts[,2] <- pd.counts[,2]/pd.type.na[1,2]
+pd.counts[,2] <- round_any(100*pd.counts[,2]/pd.type.na[1,2],
+                           0.01,f=round)
 ##  So to rebut the band Missing Persons, 2.8% of
 ##  commuters walk in LA.
 
@@ -170,16 +173,27 @@ for(i in 1:13)(
 ##  Clean up entries
 LA.data <- LA.data[c(-11,-13),]
 PD.data <- PD.data[c(-11,-13),]
+la.counts <- la.counts[c(-11,-13),]
+pd.counts <- pd.counts[c(-11,-13),]
 
 ##  Re-label types
 LA.data$type <- PD.data$type <- c("Car/Truck/Van","Bus",
-                "Streetcar","Subway","Railroad","Ferry",
-                "Taxi","Motorcycle","Bicycle","Walked","Other")
+                                  "Streetcar","Subway","Railroad","Ferry",
+                                  "Taxi","Motorcycle","Bicycle","Walked","Other")
+
+#### Added proportion table in 6th commit ####
+city.table <- as.data.frame(cbind(LA.data$type,la.counts[,2],pd.counts[,2]))
+colnames(city.table) <- c("Type","LA","Portland")
+city.tab.la <- as.data.frame(cbind(LA.data$type,LA.data$City,la.counts[,2]))
+city.tab.pd <- as.data.frame(cbind(PD.data$type,PD.data$City,pd.counts[,2]))
+city.table.2 <- rbind(city.tab.la,city.tab.pd)
 
 
-city.data <- rbind(LA.data, PD.data)
+
+1 <- rbind(LA.data, PD.data)
 limits <- aes(ymax=mean+se, ymin=mean-se)
 dodge <- position_dodge(width=0.8)
+
 
 #### Following section added in 4th commit ####
 ## Visualization  ##
@@ -196,4 +210,8 @@ ggplot(data=city.data, aes(x=factor(type),y=mean,fill=City))+
   geom_text(aes(10.5,31,label="LA Average"),size=4)+
   geom_text(aes(10.5,23.5,label="Portland Average"),size=4)+
   geom_errorbar(limits,position=dodge,width=0.25)
+
+
+#### 6th commit added table for proportion of use
+tabular(data=city.table,Heading("Transportation Type")*factor(Type)~Heading("Percent Use by Type")*(Heading()*identity*(LA+Portland)))
 
