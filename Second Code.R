@@ -1,14 +1,9 @@
-# minor modification; testing a commit
-# hi
-
 # install.packages("dplyr")
 library(dplyr)
 # install.packages("ggplot2")
 library(ggplot2)
 # install.packages("maps")
 library(maps)
-# install.packages("mapproj")
-library(mapproj)
 
 options(stringsAsFactors = FALSE)
 
@@ -62,6 +57,16 @@ unzip.state <- function(state){
 }
 
 lapply(st.name, unzip.state)
+
+# A NOTE: while running it does no harm on any machine, the following
+# function will *only work on an UNIX-based OS; after much searching,
+# I gave up on trying to find a way to make it work in Windows.
+
+# (The closest I got was by calling:
+#       system(paste("c:/utilities/cygwin64/bin/cut.exe", " -d, -f6,14,19,141",
+#        sQuote(csv.src), ">", sQuote(csv.cut), sep=" ")),
+# but that started running into issues thanks to (as far as I can tell) 
+# certain things endemic to cygwin.)
 
 cut.state <- function(state){
   ddir <- paste(getwd(), "/data", sep="")
@@ -173,7 +178,17 @@ ggplot(table.agg2, aes(map_id = State),
        xlab="x (Longitude)", ylab="y (Latitude)") +
   geom_map(aes(fill = NotSelfCare), map = map.st, color="black") +
   expand_limits(x = map.st$long, y = map.st$lat) +
-  scale_fill_gradient(low = "white", high = "red")
+  scale_fill_gradient(low = "white", high = "red") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  theme(panel.border = element_blank()) +
+  ggtitle("Proportion of veterans experiencing difficulty with self care") +
+  theme(plot.title = element_text(size = rel(1.5))) + theme_minimal()+
+  theme(axis.line=element_blank(),axis.text.x=element_blank(),
+        axis.text.y=element_blank(),axis.ticks=element_blank(),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.background=element_blank(),panel.border=element_blank(),panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),plot.background=element_blank())
 
 # At this point, it's missing Alaska and Hawaii. I'm going to get the
 # veteran disability chart done first, make sure everything's prepared
@@ -240,7 +255,12 @@ drat.rm[drat.rm == 6] <- "Elected not to answer"
 
 drat.g <- group_by(drat.rm, DR, State)
 drats.1 <- summarize(drat.g, count= n())
-drats.2[,4] <- rep(c(length(drat.msrm[,1]), length(drat.ndrm[,1])),6)
+drats.1[,4] <- rep(c(length(drat.msrm[,1]), length(drat.ndrm[,1])),6)
+drat.sum <- summarise(group_by(drats.1,DR, State), Proportion = count/V4)
 
-ggplot(drat.sum, aes(x=DR, fill=State)) +
-  geom_bar(position="dodge")
+ggplot(drat.sum, aes(x=DR, y=Proportion, fill=State)) +
+  geom_bar(position="dodge") +
+  ggtitle("VA Disability Ratings within MS and ND (by proportion)") +
+  xlab("VA Disability Rating") +
+  theme(plot.title = element_text(size = rel(1.5))) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
