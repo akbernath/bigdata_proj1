@@ -59,37 +59,44 @@ unzip.state <- function(state){
 lapply(st.name, unzip.state)
 
 # A NOTE: while running it does no harm on any machine, the following
-# function will *only work on an UNIX-based OS; after much searching,
+# function will only work on an UNIX-based OS; after much searching,
 # I gave up on trying to find a way to make it work in Windows.
+# (I instead manually cut all data using cygwin.)
 
 # (The closest I got was by calling:
 #       system(paste("c:/utilities/cygwin64/bin/cut.exe", " -d, -f6,14,19,141",
 #        sQuote(csv.src), ">", sQuote(csv.cut), sep=" ")),
 # but that started running into issues thanks to (as far as I can tell) 
-# certain things endemic to cygwin.)
+# certain things endemic to cygwin. Running R through cygwin seems to also
+# be an option, but that runs into its own problems.)
 
 cut.state <- function(state){
   ddir <- paste(getwd(), "/data", sep="")
   csv.cut <- paste(ddir, "/ss12p", state, "-cut.csv", sep="")
   if(file.exists(csv.cut) == FALSE) {
     csv.src <- paste(ddir, "/ss12p", state, ".csv", sep="")
-    system(paste("cut -d, -f6,7,14,17,19,75,112,141", sQuote(csv.src), ">", sQuote(csv.cut), sep=" "))
+    system(paste("cut -d, -f14,19,141", sQuote(csv.src), ">", sQuote(csv.cut), sep=" "))
   }
 }
 
 lapply(st.name, cut.state)
 
+# This loop reads all the cut datasets into a table; I attempted to
+# do this through a function, but assigning variables in a function
+# is a bit more complicated to get through than it was worth.
+
 i=0;
 while (i < 51) {
   i=i+1;
-  fsrc <- paste("./data/ss12p", st.name[i], "-cut.csv", sep="")
+  fsrc <- paste("./data/ss12p", st.name[i], "-cut2.csv", sep="")
   assign(paste("table.", st.name[i], sep=""), read.csv(fsrc))
 }
 
 # And filtering out the information we are interested in:
 
 filter.state <- function(state){
-  obj <- filter(get(paste("table.", state, sep="")), (VPS >= 1 & VPS <= 15))
+  obj.temp <- filter(get(paste("table.", state, sep="")), (VPS >= 1 & VPS <= 15))
+  obj <- select(obj.temp, -VPS)
   return(obj)
 }
 
@@ -100,15 +107,15 @@ while (i < 51) {
 }
 
 # At this point, we are now working with 51 tables of veteran-only data.
-# We adjust the incomes for yearly inflation and remove extraneous data:
+# Additionally, we may now focus entirely on DDRS and DRAT :
+# Difficulty of self-care and VA disability rating.
+
+# Next, we change the "1 if trouble/2 if not" model to a "0 if not/1 if yes":
 
 sort.state <- function(state){
   obj.temp <- mutate(get(paste("table.", state, sep="")),
-                WAGP_A = ADJINC * (WAGP / 1000000),
-                PINCP_A = ADJINC * (PINCP / 1000000),
-                DOUT_A = -1*(DOUT - 2),
                 DDRS_A = -1*(DDRS - 2))
-  obj <- select(obj.temp, -ADJINC, -ST, -WAGP, -PINCP, -DOUT, -DDRS)
+  obj <- select(obj.temp, -DDRS)
   return(obj)
 }
 
@@ -118,22 +125,15 @@ while (i < 51) {
   assign(paste("table.", st.name[i], sep=""), sort.state(st.name[i]))
 }
 
-# Now, we begin Visualization/Inference!
+# Now, we aggregate:
 
-table.agg <- data.frame(st.name, rep(0,51), rep(0,51), rep(0,51), rep(0,51),
-                        rep(0,51), rep(0,51), rep(0,51), rep(0,51))
-colnames(table.agg) <- c("State",  "AvgWage", "SdWage",
-                         "AvgInc", "SdInc", 
-                         "NotIndep", "SdIndep",
-                         "NotSelfCare", "SdCare")
+table.agg <- data.frame(st.name, rep(0,51), rep(0,51))
+colnames(table.agg) <- c("State", "NotSelfCare", "SdCare")
 
 sum.state <- function(state){
-  sd.work <- get(paste("table.", state, sep=""))[,6]
+  sd.work <- get(paste("table.", state, sep=""))[,2]
   sdcare <- sqrt(mean(sd.work)*(1-mean(sd.work))/length(sd.work))
   obj <- summarize(get(paste("table.", state, sep="")),
-                   mean(WAGP_A), sd(WAGP_A), 
-                   mean(PINCP_A),sd(PINCP_A),
-                   mean(DOUT_A), sd(DOUT_A),
                    mean(DDRS_A), sdcare)  
   return(obj)
 }
@@ -141,12 +141,11 @@ sum.state <- function(state){
 i=0;
 while (i < 51) {
   i=i+1;
-  table.agg[i,2:9] <- sum.state(st.name[i])
+  table.agg[i,2:3] <- sum.state(st.name[i])
 }
 
 # By proportions incapable of self-care:
 
-order(table.agg$NotSelfCare)
 care.mean <- cbind(table.agg$NotSelfCare[order(table.agg$NotSelfCare)],
                     st.name[order(table.agg$NotSelfCare)])
 
@@ -154,9 +153,11 @@ care.df <- data.frame(state = reorder(care.mean[,2],order(as.numeric(care.mean[,
                        mean = as.numeric(care.mean[,1]),
                        se = table.agg$SdCare[order(table.agg$NotSelfCare)])
 
-limits <- aes(ymax= mean + qnorm(0.975)*se, ymin= mean-qnorm(0.975)*se)
-
+# And we begin visualization.
 # Time to make a graph with error bars!
+# (It didn't make the cut, but it is reproduced here for posterity.)
+
+limits <- aes(ymax= mean + qnorm(0.975)*se, ymin= mean-qnorm(0.975)*se)
 
 qplot(y=mean, x=state, data=care.df,
       main = "Proportion of veterans experiencing difficulty with self-care",
@@ -195,8 +196,8 @@ ggplot(table.agg2, aes(map_id = State),
 # to send, and then spend a few hours checking out how to get them 
 # incorporated (if possible).
 
-drat.ms <- select(table.ms, -2,-3,-4,-5,-6)
-drat.nd <- select(table.nd, -2,-3,-4,-5,-6)
+drat.ms <- select(table.ms, -2)
+drat.nd <- select(table.nd, -2)
 drat.msrm <- na.omit(drat.ms)
 drat.ndrm <- na.omit(drat.nd)
 
