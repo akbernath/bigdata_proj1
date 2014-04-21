@@ -435,6 +435,7 @@ colnames(sum_nrg)[10]="Other_Fuel"
 colnames(sum_nrg)[11]="No_Fuel_Used"
 sum_nrg$state=as.character(sum_nrg$state)
 foo=inner_join(sum_nrg,usa_all,by="state")
+foo2=merge(sum_nrg,usa_all,by="state")
 class(sum_nrg$state)
 class(usa_all$state)
 head(foo)
@@ -447,7 +448,7 @@ ggplot(foo, aes(x,y, fill = Solar_energy,group = group)) +
   coord_fixed()
 
 qplot(x, y, data = foo, 
-      geom = "polygon", group =group, fill = Solar_energy) +
+      geom = "polygon", group =group, fill = foo$Solar_energy) +
   coord_fixed()
 
 dim(foo)
@@ -469,8 +470,11 @@ plots[[1]]=ggplot(foo, aes(x,y, fill = Utility_Gas,group = group)) +
   panel.background=element_blank(),panel.border=element_blank(),panel.grid.major=element_blank(),
  panel.grid.minor=element_blank(),plot.background=element_blank())
 
+dim(foo)
+dim(foo2)
 
-
+head(foo)
+head(foo2)
 
 
 plots[[2]]=ggplot(foo, aes(x,y, fill = Bottled_tank_or_LPGas,group = group)) +
