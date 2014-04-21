@@ -205,3 +205,11 @@ inplot1=ggplot(dat, aes(x=ST,y=p,color=Category, fill=Category, alpha=0.5))+ geo
 #inplot2=inplot1 + geom_bar(stat='identity')
 inplot1+ opts(panel.background = theme_rect(fill='white'))+theme_bw()
 
+
+#Plot for mean and median income comparison between states
+plot(incc$STATE, incc$Q50, ylim=c(min(incc$Q25),70000),type="n",main="Income of US Born population by State",xlab="State",ylab="Income",xaxt="n")
+mtext("Average and Median Income of US born with Interquartile Range Bars")
+with (data = incc, expr = errbar(STATE, Q50, Q25, Q75, add=T, pch=1, cap=.1))
+points(incc$STATE, incc$MEAN, col="red")
+axis(1, at=incc$STATE,labels=c(incc$stat), col.axis="red", las=1,cex.axis=0.5)
+
